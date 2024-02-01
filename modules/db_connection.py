@@ -13,24 +13,25 @@ class Qdrant_Connection:
     def __init__(self):
         self.client = QdrantClient(location="http://localhost/", port=6333)
 
-    async def list_collections(self) -> List:
-        response = await self.client.get_collections()
+    def list_collections(self) -> List:
+        response = self.client.get_collections()
         
         return response.collections
 
-    async def create_collection(
+    def create_collection(
         self,
         name: str,
         vector_size: int = 2048,
         sim_metric: models.Distance = models.Distance.COSINE,
     ) -> None:
         try:
-            await self.client.create_collection(
+            response = self.client.create_collection(
                 collection_name=name,
                 vectors_config=models.VectorParams(
                     size=vector_size, distance=sim_metric
                 ),
             )
+            print(response)
             logger.info(
                 "Collection created!\n\tName: %s\n\tVector size: %i"
                 % (name, vector_size)
@@ -42,8 +43,8 @@ class Qdrant_Connection:
                 % (name, vector_size))
             return e
 
-    async def delete_collection(self, name: str) -> None:
-        await self.client.delete_collection(name)
+    def delete_collection(self, name: str) -> None:
+        self.client.delete_collection(name)
 
         return {}
 
@@ -54,5 +55,4 @@ class Qdrant_Connection:
 if __name__ == "__main__":
     conn = Qdrant_Connection()
 
-    print(conn.list_collections()[0].name)
-    print(responses.JSONResponse(status_code=201, content={"name":"test", "vector_size":2048}))
+    print(conn.list_collections())

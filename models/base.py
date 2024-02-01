@@ -3,3 +3,4 @@ from pydantic import BaseModel
 
 class CollectionList(BaseModel):
     collections: List[str]
+
