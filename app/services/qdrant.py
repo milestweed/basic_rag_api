@@ -132,12 +132,11 @@ class QdrantService:
             return {"success": True, "content": json.loads(response.model_dump_json())}
         except Exception as e:
             content = e.__dict__
-            status_code = content["status_code"]
-            status_info = json.loads(content["content"])
+            status_info = content
             logger.warning(f"Could not add document: {content}")
             return {
                 "success": False,
-                "status_code": status_code,
+                "status_code": 400,
                 "content": status_info,
             }
 
@@ -147,5 +146,20 @@ class QdrantService:
     async def update_document(self):
         pass
 
-    async def delete_document(self):
-        pass
+    async def delete_document(self, collection: Collection, document: Document) -> bool:
+        try:
+            response = self.client.delete(
+                collection_name=collection.name,
+                points_selector=models.PointIdsList(points=[document.id]),
+            )
+            return {"success": True, "content": json.loads(response.model_dump_json())}
+        except Exception as e:
+            content = e.__dict__
+            logger.warning(content)
+            status_info = content
+            logger.warning(f"Could not delete document: {content}")
+            return {
+                "success": False,
+                "status_code": 400,
+                "content": status_info,
+            }

@@ -1,3 +1,4 @@
+from logging import getLogger
 from fastapi import APIRouter, HTTPException, Path, Body
 from typing import List, Dict, Union, Annotated
 from app.models.models import (
@@ -10,7 +11,7 @@ from app.services.qdrant import QdrantService
 
 router = APIRouter()
 qdrant_service = QdrantService()
-
+logger = getLogger("uvicorn")
 
 @router.post("/collections/", status_code=201, response_model=OperationStatus)
 async def create_collection(collection: CollectionCreate):
@@ -99,8 +100,8 @@ async def delete_collection(
     return OperationStatus(message="Collection deleted", details=None)
 
 
-@router.post("/", status_code=201, response_model=OperationStatus)
-async def upload_document(document: Document, collection_name: str):
+@router.post("/{collection_name}", status_code=201, response_model=OperationStatus)
+async def upload_document(collection_name: str, document: Document):
     """
     Upload a document to the qdrant database.
     """
@@ -111,3 +112,15 @@ async def upload_document(document: Document, collection_name: str):
             status_code=response["status_code"], detail=response["content"]
         )
     return OperationStatus(message="Document uploaded", details=response["content"])
+
+
+@router.delete("/{collection_name}/{document_id}", status_code=200, response_model=OperationStatus)
+async def delete_document(collection_name: str, document_id: int):
+    c = Collection(name=collection_name)
+    d = Document(id=document_id)
+    response = await qdrant_service.delete_document(collection=c, document=d)
+    if not response["success"]:
+        raise HTTPException(
+            status_code=response['status_code'], detail=response["content"]
+        )
+    return OperationStatus(message="Document deleted", details=response["content"])

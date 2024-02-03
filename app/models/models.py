@@ -18,10 +18,14 @@ class CollectionCreate(Collection):
 
 # Schema for a single document to be uploaded
 class Document(BaseModel):
-    id: Optional[Union[int, str]] = Field(default=None, description="The unique identifier for the document")
-    vector: List[float] = Field(..., description="The encoded vector for the document")
+    id: Optional[Union[int, str]] = Field(
+        default=None, description="The unique identifier for the document"
+    )
+    vector: Optional[List[float]] = Field(
+        default=None, description="The encoded vector for the document"
+    )
     metadata: Optional[dict] = Field(
-        ..., description="Optional metadata for the document"
+        default=None, description="Optional metadata for the document"
     )
 
 
@@ -38,7 +42,8 @@ class DocumentBatchUpload(BaseModel):
 # Response model for a successful operation
 class OperationStatus(BaseModel):
     message: Optional[str] = Field(
-        default=None, description="A message indicating the success or failure of the operation"
+        default=None,
+        description="A message indicating the success or failure of the operation",
     )
     details: Optional[dict] = Field(
         default=None, description="A dictionary of details about the operation"

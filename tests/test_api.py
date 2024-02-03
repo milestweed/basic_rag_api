@@ -40,13 +40,22 @@ def test_upload_document():
     data = '{"id": 1, "metadata": {"test": "document"}, "vector": [0.5, 0.4, 0.1]}'
 
     response = client.post(
-        "/qdrant/?collection_name=test_collection",
+        "/qdrant/test_collection",
         content=data,
         headers={"content-type": "application/json", "accept": "appication/json"},
     )
 
     assert response.status_code == 201
     assert response.json()["message"] == "Document uploaded"
+
+
+def test_delete_document():
+    response = client.delete(
+        "/qdrant/test_collection/1",
+    )
+    
+    assert response.status_code == 200
+    assert response.json()['message'] == "Document deleted"
 
 
 def test_get_collection_info():
