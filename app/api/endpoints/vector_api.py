@@ -1,12 +1,9 @@
 from fastapi import APIRouter, HTTPException, Path, Body
 from typing import List, Dict, Union, Annotated
 from app.models.models import (
-    VectorCreate,
-    VectorBase,
-    VectorUpdate,
     Collection,
     CollectionCreate,
-    DocumentBatchUpload,
+    Document,
     OperationStatus,
 )
 from app.services.qdrant import QdrantService
@@ -56,9 +53,7 @@ async def get_collections():
     "/collections/{collection_name}", status_code=200, response_model=OperationStatus
 )
 async def get_collection_info(
-    collection_name: Annotated[
-        str, Path(title="The name of a collection that exist.")
-    ]
+    collection_name: Annotated[str, Path(title="The name of a collection that exist.")]
 ):
     """Returns information about a collection within the database
 
@@ -104,63 +99,15 @@ async def delete_collection(
     return OperationStatus(message="Collection deleted", details=None)
 
 
-#####################################
-##               INFO              ##
-#####################################
-@router.post("/", response_model=VectorBase)
-async def create_vector(vector: VectorCreate):
+@router.post("/", status_code=201, response_model=OperationStatus)
+async def upload_document(document: Document, collection_name: str):
     """
-    Create a new vector in the Qdrant database.
+    Upload a document to the qdrant database.
     """
-    created_vector = await qdrant_service.create_vector(vector_data=vector)
-    return created_vector
-
-
-@router.get("/{document_id}", response_model=VectorBase)
-async def get_document(
-    document_id: int = Path(..., description="The ID of the vector to retrieve")
-):
-    """
-    Retrieve a vector by its ID from the Qdrant database.
-    """
-    vector = await qdrant_service.get_document(document_id=document_id)
-    if vector is None:
-        raise HTTPException(status_code=404, detail="Document not found")
-    return vector
-
-
-@router.put("/{document_id}", response_model=VectorBase)
-async def update_document(document_id: int, vector: VectorUpdate):
-    """
-    Update an existing document in the Qdrant database.
-    """
-    updated_vector = await qdrant_service.update_document(
-        vector_id=vector_id, vector_data=vector
-    )
-    if updated_vector is None:
-        raise HTTPException(status_code=404, detail="Document not found")
-    return updated_vector
-
-
-@router.delete("/{document_id}", response_model=VectorBase)
-async def delete_document(document_id: int):
-    """
-    Delete a document from the Qdrant database.
-    """
-    deleted_vector = await qdrant_service.delete_document(document_id=document_id)
-    if deleted_vector is None:
-        raise HTTPException(status_code=404, detail="Document not found")
-    return deleted_vector
-
-
-@router.post("/batch_upload/", status_code=202)
-async def batch_upload_documents(batch: DocumentBatchUpload):
-    """
-    Perform a batch upload of documents along with their metadata to a specified collection.
-    """
-    success = await qdrant_service.batch_upload_documents(batch_data=batch)
-    if not success:
+    c = Collection(name=collection_name)
+    response = await qdrant_service.upload_document(collection=c, document=document)
+    if not response["success"]:
         raise HTTPException(
-            status_code=400, detail="Error in batch uploading documents"
+            status_code=response["status_code"], detail=response["content"]
         )
-    return {"message": "Batch upload successful"}
+    return OperationStatus(message="Document uploaded", details=response["content"])

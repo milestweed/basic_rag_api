@@ -3,7 +3,7 @@ import logging
 import json
 from fastapi import HTTPException
 from app.core.config import settings
-from app.models.models import Collection, CollectionCreate, DocumentBatchUpload
+from app.models.models import Collection, CollectionCreate, Document
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 
@@ -79,7 +79,7 @@ class QdrantService:
             return {"success": True, "content": collections}
 
         except Exception as e:
-            logger.warn(f"Could not retrieve collections: {e}")
+            logger.warning(f"Could not retrieve collections: {e}")
             return {"success": False, "content": e}
 
     async def get_collection_info(self, collection_data: Collection) -> Dict:
@@ -99,7 +99,7 @@ class QdrantService:
             content = e.__dict__
             status_code = content["status_code"]
             status_info = json.loads(content["content"])
-            logger.warn(f"Could not retrieve collection: {e.__dict__}")
+            logger.warning(f"Could not retrieve collection: {e.__dict__}")
             return {
                 "success": False,
                 "status_code": status_code,
@@ -116,29 +116,30 @@ class QdrantService:
         success = self.client.delete_collection(collection_data.name)
         return success
 
-    ###############################################
-    ##                     TODO                  ##
-    ###############################################
+    async def upload_document(self, collection: Collection, document: Document) -> Dict:
 
-    async def batch_upload_documents(self, batch_data: DocumentBatchUpload) -> bool:
-        """
-        Uploads a batch of documents to a specified collection in Qdrant.
-        """
         try:
-            # Assuming `QdrantClient` has a method for batch uploads
-            # Convert `DocumentBatchUpload` schema to the format expected by Qdrant if necessary
-            self.client.upsert(
-                collection_name=batch_data.collection_name,
-                documents=batch_data.documents,
+            response = self.client.upsert(
+                collection_name=collection.name,
+                points=[
+                    models.PointStruct(
+                        id=document.id,
+                        vector=document.vector,
+                        payload=document.metadata,
+                    )
+                ],
             )
-            return True
+            return {"success": True, "content": json.loads(response.model_dump_json())}
         except Exception as e:
-            # Log the error or handle it as needed
-            print(f"Error in batch uploading documents: {e}")
-            return False
-
-    async def create_document(self):
-        pass
+            content = e.__dict__
+            status_code = content["status_code"]
+            status_info = json.loads(content["content"])
+            logger.warning(f"Could not add document: {content}")
+            return {
+                "success": False,
+                "status_code": status_code,
+                "content": status_info,
+            }
 
     async def get_document(self):
         pass
@@ -146,30 +147,5 @@ class QdrantService:
     async def update_document(self):
         pass
 
-    async def delete_document(self, document_id: int, collection_name: str) -> bool:
-        """
-        Deletes a Document from the Qdrant database by its ID.
-
-        Args:
-            vector_id (int): The ID of the vector to delete.
-
-        Returns:
-            bool: True if deletion was successful, False otherwise.
-        """
-        try:
-            # Assuming `delete` is an async method of the client
-            # Adjust the method call according to your client's API
-            response = self.client.delete(
-                collection_name=collection_name, document_id=document_id
-            )
-            if (
-                response.is_success
-            ):  # Check success based on your client's response structure
-                return True
-            else:
-                return False
-        except Exception as e:
-            # Log the exception or handle it as needed
-            raise HTTPException(
-                status_code=500, detail=f"Error deleting vector: {str(e)}"
-            )
+    async def delete_document(self):
+        pass
