@@ -48,6 +48,13 @@ def test_upload_document():
     assert response.status_code == 201
     assert response.json()["message"] == "Document uploaded"
 
+def test_get_document():
+    response = client.get(
+        "/qdrant/test_collection/1",
+    )
+    
+    assert response.status_code == 200
+    assert response.json()['message'] == "Document found"
 
 def test_delete_document():
     response = client.delete(

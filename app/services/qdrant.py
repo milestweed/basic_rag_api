@@ -140,8 +140,21 @@ class QdrantService:
                 "content": status_info,
             }
 
-    async def get_document(self):
-        pass
+    async def get_document(self, collection: Collection, document: Document):
+        try:
+            response = self.client.retrieve(
+                collection_name=collection.name,
+                ids=[document.id],
+                with_vectors=True,
+            )
+            return {"success": True, "content": json.loads(response[0].model_dump_json())}
+        except Exception as e:
+            logger.warning(f"Could not get document: {e}")
+            return {
+                "success": False,
+                "status_code": 400,
+                "content": e,
+            }
 
     async def update_document(self):
         pass

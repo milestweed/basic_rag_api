@@ -124,3 +124,15 @@ async def delete_document(collection_name: str, document_id: int):
             status_code=response['status_code'], detail=response["content"]
         )
     return OperationStatus(message="Document deleted", details=response["content"])
+
+@router.get("/{collection_name}/{document_id}", status_code=200, response_model=OperationStatus)
+async def get_document(collection_name: str, document_id: int):
+    c = Collection(name=collection_name)
+    d = Document(id=document_id)
+    response = await qdrant_service.get_document(collection=c, document=d)
+    if not response["success"]:
+        raise HTTPException(
+            status_code=response['status_code'], detail=response["content"]
+        )
+    return OperationStatus(message="Document found", details=response["content"])
+
