@@ -24,7 +24,7 @@ def test_list_collection():
 
 def test_create_collection():
     """Test creating a new collection."""
-    data = {"name": "test_collection", "dimensions": "2048", "distance": "cosine"}
+    data = {"name": "test_collection", "dimensions": "3", "distance": "cosine"}
 
     response = client.post(
         "/qdrant/collections/",
@@ -34,6 +34,47 @@ def test_create_collection():
 
     assert response.status_code == 201
     assert response.json()["message"] == "Collection created successfully"
+
+
+def test_upload_document():
+    data = '{"id": 1, "metadata": {"test": "document"}, "vector": [0.5, 0.4, 0.1]}'
+
+    response = client.post(
+        "/qdrant/test_collection",
+        content=data,
+        headers={"content-type": "application/json", "accept": "appication/json"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["message"] == "Document uploaded"
+
+def test_get_document():
+    response = client.get(
+        "/qdrant/test_collection/1",
+    )
+    
+    assert response.status_code == 200
+    assert response.json()['message'] == "Document found"
+
+def test_update_document():
+    data = '{"id": 1, "metadata": {"test": "document"}, "vector": [0.2, 0.2, 0.2]}'
+
+    response = client.post(
+        "/qdrant/test_collection/update",
+        content=data,
+        headers={"content-type": "application/json", "accept": "appication/json"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["message"] == "Document updated"
+
+def test_delete_document():
+    response = client.delete(
+        "/qdrant/test_collection/1",
+    )
+    
+    assert response.status_code == 200
+    assert response.json()['message'] == "Document deleted"
 
 
 def test_get_collection_info():
@@ -49,17 +90,3 @@ def test_delete_collection():
     assert response.status_code == 202
     assert response.json()["message"] == "Collection deleted"
 
-
-# def test_batch_upload_documents():
-#     """Test batch uploading documents to a collection."""
-#     # Assuming you have an endpoint for batch uploading documents
-#     documents = [
-#         {"id": 1, "vector": [0.1, 0.2], "metadata": {"name": "doc1"}},
-#         {"id": 2, "vector": [0.3, 0.4], "metadata": {"name": "doc2"}}
-#     ]
-#     response = client.post(
-#         "/documents/batch_upload/",
-#         json={"collection_name": "test_collection", "documents": documents}
-#     )
-#     assert response.status_code == 202
-#     assert response.json()["message"] == "Batch upload successful"
