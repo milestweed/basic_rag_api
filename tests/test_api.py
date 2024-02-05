@@ -48,13 +48,15 @@ def test_upload_document():
     assert response.status_code == 201
     assert response.json()["message"] == "Document uploaded"
 
+
 def test_get_document():
     response = client.get(
         "/qdrant/test_collection/1",
     )
-    
+
     assert response.status_code == 200
-    assert response.json()['message'] == "Document found"
+    assert response.json()["message"] == "Document found"
+
 
 def test_update_document():
     data = '{"id": 1, "metadata": {"test": "document"}, "vector": [0.2, 0.2, 0.2]}'
@@ -68,13 +70,14 @@ def test_update_document():
     assert response.status_code == 201
     assert response.json()["message"] == "Document updated"
 
+
 def test_delete_document():
     response = client.delete(
         "/qdrant/test_collection/1",
     )
-    
+
     assert response.status_code == 200
-    assert response.json()['message'] == "Document deleted"
+    assert response.json()["message"] == "Document deleted"
 
 
 def test_get_collection_info():
@@ -89,4 +92,3 @@ def test_delete_collection():
 
     assert response.status_code == 202
     assert response.json()["message"] == "Collection deleted"
-

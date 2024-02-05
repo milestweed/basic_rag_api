@@ -147,7 +147,10 @@ class QdrantService:
                 ids=[document.id],
                 with_vectors=True,
             )
-            return {"success": True, "content": json.loads(response[0].model_dump_json())}
+            return {
+                "success": True,
+                "content": json.loads(response[0].model_dump_json()),
+            }
         except Exception as e:
             logger.warning(f"Could not get document: {e}")
             return {
@@ -160,7 +163,7 @@ class QdrantService:
         try:
             response = self.client.update_vectors(
                 collection_name=collection.name,
-                points=[models.PointVectors(id=document.id, vector=document.vector)]
+                points=[models.PointVectors(id=document.id, vector=document.vector)],
             )
             return {"success": True, "content": json.loads(response.model_dump_json())}
         except Exception as e:

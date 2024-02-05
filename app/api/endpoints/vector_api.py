@@ -13,6 +13,7 @@ router = APIRouter()
 qdrant_service = QdrantService()
 logger = getLogger("uvicorn")
 
+
 @router.post("/collections/", status_code=201, response_model=OperationStatus)
 async def create_collection(collection: CollectionCreate):
     """
@@ -114,29 +115,37 @@ async def upload_document(collection_name: str, document: Document):
     return OperationStatus(message="Document uploaded", details=response["content"])
 
 
-@router.delete("/{collection_name}/{document_id}", status_code=200, response_model=OperationStatus)
+@router.delete(
+    "/{collection_name}/{document_id}", status_code=200, response_model=OperationStatus
+)
 async def delete_document(collection_name: str, document_id: int):
     c = Collection(name=collection_name)
     d = Document(id=document_id)
     response = await qdrant_service.delete_document(collection=c, document=d)
     if not response["success"]:
         raise HTTPException(
-            status_code=response['status_code'], detail=response["content"]
+            status_code=response["status_code"], detail=response["content"]
         )
     return OperationStatus(message="Document deleted", details=response["content"])
 
-@router.get("/{collection_name}/{document_id}", status_code=200, response_model=OperationStatus)
+
+@router.get(
+    "/{collection_name}/{document_id}", status_code=200, response_model=OperationStatus
+)
 async def get_document(collection_name: str, document_id: int):
     c = Collection(name=collection_name)
     d = Document(id=document_id)
     response = await qdrant_service.get_document(collection=c, document=d)
     if not response["success"]:
         raise HTTPException(
-            status_code=response['status_code'], detail=response["content"]
+            status_code=response["status_code"], detail=response["content"]
         )
     return OperationStatus(message="Document found", details=response["content"])
 
-@router.post("/{collection_name}/update", status_code=201, response_model=OperationStatus)
+
+@router.post(
+    "/{collection_name}/update", status_code=201, response_model=OperationStatus
+)
 async def update_document(collection_name: str, document: Document):
     """
     Upload a document to the qdrant database.

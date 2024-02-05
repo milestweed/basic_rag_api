@@ -1,3 +1,5 @@
+black
+pylint
 fastapi
 uvicorn[standard]
 qdrant-client
