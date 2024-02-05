@@ -140,7 +140,7 @@ class QdrantService:
                 "content": status_info,
             }
 
-    async def get_document(self, collection: Collection, document: Document):
+    async def get_document(self, collection: Collection, document: Document) -> Dict:
         try:
             response = self.client.retrieve(
                 collection_name=collection.name,
@@ -156,10 +156,22 @@ class QdrantService:
                 "content": e,
             }
 
-    async def update_document(self):
-        pass
+    async def update_document(self, collection: Collection, document: Document) -> Dict:
+        try:
+            response = self.client.update_vectors(
+                collection_name=collection.name,
+                points=[models.PointVectors(id=document.id, vector=document.vector)]
+            )
+            return {"success": True, "content": json.loads(response.model_dump_json())}
+        except Exception as e:
+            logger.warning(f"Could not update document: {e}")
+            return {
+                "success": False,
+                "status_code": 400,
+                "content": str(e),
+            }
 
-    async def delete_document(self, collection: Collection, document: Document) -> bool:
+    async def delete_document(self, collection: Collection, document: Document) -> Dict:
         try:
             response = self.client.delete(
                 collection_name=collection.name,

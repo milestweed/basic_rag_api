@@ -136,3 +136,15 @@ async def get_document(collection_name: str, document_id: int):
         )
     return OperationStatus(message="Document found", details=response["content"])
 
+@router.post("/{collection_name}/update", status_code=201, response_model=OperationStatus)
+async def update_document(collection_name: str, document: Document):
+    """
+    Upload a document to the qdrant database.
+    """
+    c = Collection(name=collection_name)
+    response = await qdrant_service.update_document(collection=c, document=document)
+    if not response["success"]:
+        raise HTTPException(
+            status_code=response["status_code"], detail=response["content"]
+        )
+    return OperationStatus(message="Document updated", details=response["content"])

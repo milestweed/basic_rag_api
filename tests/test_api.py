@@ -56,6 +56,18 @@ def test_get_document():
     assert response.status_code == 200
     assert response.json()['message'] == "Document found"
 
+def test_update_document():
+    data = '{"id": 1, "metadata": {"test": "document"}, "vector": [0.2, 0.2, 0.2]}'
+
+    response = client.post(
+        "/qdrant/test_collection/update",
+        content=data,
+        headers={"content-type": "application/json", "accept": "appication/json"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["message"] == "Document updated"
+
 def test_delete_document():
     response = client.delete(
         "/qdrant/test_collection/1",
