@@ -7,7 +7,7 @@ class TextEncoder:
         self.tokenizer = BertTokenizer.from_pretrained(model_name)
         self.model = BertModel.from_pretrained(model_name)
 
-    def encode(self, text: str) -> torch.Tensor:
+    async def encode(self, text: str) -> torch.Tensor:
         """
         Tokenizes the text and returns the vector representation (embedding) of the document.
 

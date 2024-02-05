@@ -92,3 +92,11 @@ def test_delete_collection():
 
     assert response.status_code == 202
     assert response.json()["message"] == "Collection deleted"
+
+
+def test_encode_text():
+    response = client.post("/qdrant/encode/?text=This%20is%20a%20test")
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Text encoded"
+    assert response.json()["details"]["text"] == "This is a test"

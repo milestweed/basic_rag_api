@@ -8,9 +8,11 @@ from app.models.models import (
     OperationStatus,
 )
 from app.services.qdrant import QdrantService
+from app.services.text_processing import TextEncoder
 
 router = APIRouter()
 qdrant_service = QdrantService()
+enc = TextEncoder()
 logger = getLogger("uvicorn")
 
 
@@ -157,3 +159,11 @@ async def update_document(collection_name: str, document: Document):
             status_code=response["status_code"], detail=response["content"]
         )
     return OperationStatus(message="Document updated", details=response["content"])
+
+
+@router.post("/encode/", status_code=200, response_model=OperationStatus)
+async def encode_text(text: str):
+    result = await enc.encode(text)
+    return OperationStatus(
+        message="Text encoded", details={"text": text, "encoding": result.tolist()}
+    )
