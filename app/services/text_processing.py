@@ -1,12 +1,20 @@
-from transformers import BertTokenizer, BertModel
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    pipeline
+)
 import torch
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 
 
 class TextEncoder:
-    def __init__(self, model_name: str = "bert-base-uncased"):
-        self.tokenizer = BertTokenizer.from_pretrained(model_name)
-        self.model = BertModel.from_pretrained(model_name)
-
+    def __init__(self, model_name: str = 'sentence-transformers/all-mpnet-base-v2'):
+        self.embeddings = HuggingFaceEmbeddings(model_name=model_name)
+        self.text_splitter = CharacterTextSplitter(chunk_size=800,
+                                                   chunk_overlap=0)
+        
     async def encode(self, text: str) -> torch.Tensor:
         """
         Tokenizes the text and returns the vector representation (embedding) of the document.
@@ -17,19 +25,14 @@ class TextEncoder:
         Returns:
             torch.Tensor: The embedding of the text document.
         """
-        inputs = self.tokenizer(
-            text, return_tensors="pt", padding=True, truncation=True, max_length=512
-        )
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-        # Using the mean pooled output for simplicity; other strategies might be more suitable depending on the use case
-        embeddings = outputs.last_hidden_state.mean(dim=1)
-        return embeddings
+        emb = self.embeddings.embed_documents([text])
+
+        return emb
 
 
 # Example usage
 if __name__ == "__main__":
     encoder = TextEncoder()
-    text = "Here is some example text to encode."
-    embeddings = encoder.encode(text)
+    sample = "Here is some example text to encode."
+    embeddings = encoder.encode(sample))
     print(embeddings)
